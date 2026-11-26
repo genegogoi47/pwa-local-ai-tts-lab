@@ -68,7 +68,7 @@
           <div class="number-badge">02</div>
         </div>
         <label class="field-label" for="speech-text">TEST TEXT <span id="char-count">0 / 1,200</span></label>
-        <textarea id="speech-text" maxlength="1200" rows="5">The best way to learn is to build something, test it in the real world, and improve it one step at a time. This voice is being generated directly on your device, without sending this text to a cloud text-to-speech service.</textarea>
+        <textarea id="speech-text" maxlength="1200" rows="5">Hello! This is a short local voice test. The speech is generated directly on this device, without sending the text to a cloud speech service.</textarea>
         <div class="button-row generate-row">
           <button class="button primary" id="generate-btn" disabled><span class="button-icon">✦</span> Generate speech</button>
           <span class="muted small" id="generation-estimate">Load the model first.</span>
@@ -117,7 +117,7 @@
 
       <section class="notice-card">
         <div class="notice-icon">i</div>
-        <div><strong>Prototype notes</strong><p>Speech synthesis runs on this device. The model and WebAssembly runtime are downloaded from their hosting providers during setup. Model availability can be affected by browser storage eviction. This is a technical test, not a finished audiobook reader.</p><p>MediaPipe Tasks may transmit usage/performance metrics under Google's privacy notice; this prototype does not send your test text to a cloud TTS endpoint.</p></div>
+        <div><strong>Prototype notes</strong><p>Speech synthesis runs on this device inside a dedicated Web Worker. The model and WebAssembly runtime are downloaded from their hosting providers during setup. Model availability can be affected by browser storage eviction. This is a technical test, not a finished audiobook reader.</p><p>MediaPipe Tasks may transmit usage/performance metrics under Google's privacy notice; this prototype does not send your test text to a cloud TTS endpoint.</p></div>
       </section>
     </main>
     <footer><span>LOCALVOICE LAB</span><span>MediaPipe Tasks Audio 1.2.3 · Phonon 31M</span></footer>

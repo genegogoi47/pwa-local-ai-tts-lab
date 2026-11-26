@@ -8,6 +8,7 @@ A mobile-first installable PWA experiment for running Google's MediaPipe Text-to
 2. Uses MediaPipe Tasks Audio JavaScript SDK `1.2.3` and the official Phonon model hosted by the LiteRT Community on Hugging Face.
 3. Stores the model response in a dedicated Cache Storage cache where supported.
 4. Enumerates the actual voices exposed by the loaded model (`listVoices()`).
+5. Runs MediaPipe model initialization and synthesis inside a dedicated Web Worker so model inference does not block the PWA interface.
 5. Synthesizes a short text sample to 24 kHz mono float32 PCM.
 6. Converts the PCM to a 16-bit WAV file and plays it through a normal HTML `<audio>` element.
 7. Exposes Media Session metadata/actions where supported so lock-screen controls can be tested.
@@ -29,12 +30,13 @@ This is a technical proof of concept, not a book reader. It deliberately limits 
 1. Open the app while online.
 2. Tap **Download & load model**. The Phonon model is about 87 MB. Keep the app open until download and model initialization finish.
 3. Select one of the model-reported English voices.
-4. Leave the default short test text or enter your own short sample (maximum 1,200 characters).
-5. Tap **Generate speech** and wait for WAV conversion.
-6. Press Play on the audio player.
-7. On iPhone, lock the screen for 60–90 seconds and test switching to another app. Check whether audio continues and whether Lock Screen controls appear.
-8. Repeat on Android Chrome.
-9. Reload the PWA and check whether the model is reused from Cache Storage. Browser storage can still be evicted by the OS/browser.
+4. Leave the short default test text or enter a short sample (maximum 1,200 characters).
+5. Tap **Generate speech**. In this version, synthesis runs in `tts-worker.js`; the page timer should continue updating while the worker computes.
+6. Wait for a success or error message. A 180-second safety timeout prevents an endless spinner.
+7. Press Play on the audio player.
+8. On iPhone, lock the screen for 60–90 seconds and test switching to another app. Check whether audio continues and whether Lock Screen controls appear.
+9. Repeat on Android Chrome.
+10. Reload the PWA and check whether the model is reused from Cache Storage. Browser storage can still be evicted by the OS/browser.
 
 ## Model and runtime URLs
 
@@ -43,13 +45,17 @@ This is a technical proof of concept, not a book reader. It deliberately limits 
 - Phonon model: `https://huggingface.co/litert-community/phonon-31m-en/resolve/main/phonon_int8.litertlm`
 - Official MediaPipe guide: https://developers.google.com/edge/mediapipe/solutions/audio/text_to_speech
 
-The application downloads the model and WebAssembly runtime from those external hosts. TTS inference is performed locally in the browser; this prototype does not send the entered test text to a cloud TTS endpoint. MediaPipe Tasks may collect usage/performance metrics; see Google's MediaPipe privacy notice.
+The application downloads the model and WebAssembly runtime from those external hosts. Model inference runs in a dedicated Web Worker, following Google's guidance to move synchronous Web inference off the UI thread. TTS inference is performed locally in the browser; this prototype does not send the entered test text to a cloud TTS endpoint. MediaPipe Tasks may collect usage/performance metrics; see Google's MediaPipe privacy notice.
 
 ## Model details
 
 Google documents Phonon 31M as an approximately 87 MB INT8 CPU model for English (`en-US`) with five voices: `freya`, `claire`, `lucas`, `lukas`, and `sofia`. The app calls `listVoices()` instead of assuming the model's available voice list.
 
 The model is distributed under Apache 2.0 according to Google's model table. The MediaPipe Tasks Audio npm package is also Apache 2.0. Review the model and SDK notices before redistributing them as part of a commercial product.
+
+## Worker-based inference
+
+The model is initialized and synthesized inside `tts-worker.js`. This keeps intensive WebAssembly/model work off the page UI thread. The page receives PCM samples from the worker and performs WAV encoding and playback. The worker has a 180-second synthesis timeout managed by the page; on timeout the worker is terminated and the user is asked to retry with shorter text.
 
 ## Important limitations
 

@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#111827" />
+  <meta name="description" content="Test private, on-device neural text-to-speech in an installable PWA." />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="icon" href="/icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+  <link rel="stylesheet" href="/styles.css" />
+  <title>Local AI TTS Lab</title>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="Local AI TTS Lab home">
+        <span class="brand-mark"><span></span><span></span><span></span><span></span><span></span></span>
+        <span>LOCAL<span class="brand-light">VOICE</span></span>
+      </a>
+      <span class="lab-pill"><span class="pulse-dot"></span> EXPERIMENT 02</span>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="eyebrow">ON-DEVICE SPEECH SYNTHESIS</div>
+        <h1>Your phone.<br /><em>Your own audiobook voice.</em></h1>
+        <p class="hero-copy">Generate speech locally with Google's MediaPipe + Phonon model, then test the audio with your screen locked.</p>
+        <div class="hero-tags"><span><i class="tag-dot green"></i> No TTS API</span><span><i class="tag-dot blue"></i> English model</span><span><i class="tag-dot orange"></i> ~87 MB download</span></div>
+      </section>
+
+      <section class="card model-card" aria-labelledby="model-title">
+        <div class="card-heading">
+          <div>
+            <div class="step-label">01 / MODEL SETUP</div>
+            <h2 id="model-title">Download your voice engine</h2>
+          </div>
+          <div class="model-icon"><span class="wave-icon">〰</span></div>
+        </div>
+        <p class="muted">The Phonon 31M English model is downloaded only when you press the button. It is stored separately from the app and reused on later visits where browser storage is retained.</p>
+        <div class="model-specs">
+          <div><span class="spec-value">~87 MB</span><span class="spec-label">MODEL SIZE</span></div>
+          <div><span class="spec-value">24 kHz</span><span class="spec-label">AUDIO OUTPUT</span></div>
+          <div><span class="spec-value">CPU</span><span class="spec-label">INFERENCE</span></div>
+        </div>
+        <div class="progress-wrap" id="model-progress-wrap" hidden>
+          <div class="progress-meta"><span id="model-progress-label">Preparing download…</span><span id="model-progress-value">0%</span></div>
+          <div class="progress-track"><div class="progress-fill" id="model-progress-fill"></div></div>
+        </div>
+        <div class="button-row">
+          <button class="button primary" id="load-model-btn"><span class="button-icon">↓</span> Download &amp; load model</button>
+          <button class="button secondary" id="clear-model-btn" type="button">Remove saved model</button>
+        </div>
+        <div class="status-line" id="model-status" role="status"><span class="status-dot neutral"></span><span>Model not loaded. First download requires an internet connection.</span></div>
+        <div class="voice-row" id="voice-row" hidden>
+          <label for="voice-select">Voice profile</label>
+          <select id="voice-select" disabled></select>
+          <span class="voice-hint" id="voice-hint">Voices are listed by the loaded model.</span>
+        </div>
+      </section>
+
+      <section class="card synth-card" aria-labelledby="synth-title">
+        <div class="card-heading">
+          <div>
+            <div class="step-label">02 / GENERATE AUDIO</div>
+            <h2 id="synth-title">Give it something to say</h2>
+          </div>
+          <div class="number-badge">02</div>
+        </div>
+        <label class="field-label" for="speech-text">TEST TEXT <span id="char-count">0 / 1,200</span></label>
+        <textarea id="speech-text" maxlength="1200" rows="5">The best way to learn is to build something, test it in the real world, and improve it one step at a time. This voice is being generated directly on your device, without sending this text to a cloud text-to-speech service.</textarea>
+        <div class="button-row generate-row">
+          <button class="button primary" id="generate-btn" disabled><span class="button-icon">✦</span> Generate speech</button>
+          <span class="muted small" id="generation-estimate">Load the model first.</span>
+        </div>
+        <div class="progress-wrap" id="generation-progress-wrap" hidden>
+          <div class="progress-meta"><span id="generation-status">Generating audio…</span><span id="generation-elapsed">0.0s</span></div>
+          <div class="progress-track"><div class="progress-fill indeterminate" id="generation-progress-fill"></div></div>
+        </div>
+        <div class="result-strip" id="generation-result" hidden></div>
+      </section>
+
+      <section class="card player-card" aria-labelledby="player-title">
+        <div class="card-heading">
+          <div>
+            <div class="step-label">03 / BACKGROUND AUDIO TEST</div>
+            <h2 id="player-title">Play it like an audiobook</h2>
+          </div>
+          <div class="headphone-icon">♫</div>
+        </div>
+        <p class="muted">Generated PCM is converted into a WAV file, then played through a normal HTML audio element. After pressing Play, lock your phone or switch apps to test background playback.</p>
+        <div class="audio-panel" id="audio-panel">
+          <div class="audio-art"><span class="brand-mark large"><span></span><span></span><span></span><span></span><span></span></span></div>
+          <div class="audio-details"><strong id="audio-title">No audio generated yet</strong><span id="audio-subtitle">Your generated sample will appear here</span></div>
+          <span class="file-tag" id="audio-file-tag">WAV</span>
+        </div>
+        <audio id="audio-player" controls playsinline preload="none"></audio>
+        <div class="button-row audio-actions">
+          <button class="button secondary" id="download-wav-btn" disabled>↓ Download WAV</button>
+          <button class="button secondary" id="clear-audio-btn" disabled>Clear audio</button>
+        </div>
+        <div class="test-callout"><span class="callout-icon">↗</span><span><strong>iPhone test:</strong> start playback, lock the screen for 60–90 seconds, then unlock. Also try switching to another app. Record whether playback continues and whether Lock Screen controls appear.</span></div>
+      </section>
+
+      <section class="card diagnostics-card" aria-labelledby="diagnostics-title">
+        <div class="card-heading compact-heading">
+          <div><div class="step-label">04 / DEVICE CHECK</div><h2 id="diagnostics-title">Test environment</h2></div>
+          <button class="text-button" id="refresh-diagnostics-btn">Refresh</button>
+        </div>
+        <div class="diagnostics-grid" id="diagnostics-grid"></div>
+      </section>
+
+      <section class="card log-card" aria-labelledby="log-title">
+        <div class="card-heading compact-heading"><div><div class="step-label">DEBUG / SESSION</div><h2 id="log-title">Test log</h2></div><button class="text-button" id="clear-log-btn">Clear</button></div>
+        <div class="log-list" id="log-list" aria-live="polite"><div class="log-empty">No activity yet. Load the model to begin.</div></div>
+      </section>
+
+      <section class="notice-card">
+        <div class="notice-icon">i</div>
+        <div><strong>Prototype notes</strong><p>Speech synthesis runs on this device. The model and WebAssembly runtime are downloaded from their hosting providers during setup. Model availability can be affected by browser storage eviction. This is a technical test, not a finished audiobook reader.</p><p>MediaPipe Tasks may transmit usage/performance metrics under Google's privacy notice; this prototype does not send your test text to a cloud TTS endpoint.</p></div>
+      </section>
+    </main>
+    <footer><span>LOCALVOICE LAB</span><span>MediaPipe Tasks Audio 1.2.3 · Phonon 31M</span></footer>
+  </div>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

@@ -116,16 +116,19 @@ async function loadModel() {
   initializationPromise = (async () => {
     busy = true;
     send("phase", { phase: "loading", message: "Preparing the local speech engine…" });
-    sendLog(`Initializing MediaPipe Tasks Audio ${SDK_VERSION} inside a dedicated Web Worker.`);
+    sendLog(`Initializing MediaPipe Tasks Audio ${SDK_VERSION} inside a classic Web Worker.`);
+    sendLog(`Worker importScripts support: ${typeof importScripts === "function" ? "available" : "unavailable"}.`);
     const { FilesetResolver, TextToSpeech } = await import(SDK_URL);
     sendLog("MediaPipe JavaScript module loaded in worker.", "success");
     const wasmFileset = await FilesetResolver.forAudioTasks(WASM_URL);
-    sendLog("WebAssembly runtime ready in worker.", "success");
+    sendLog(`WASM loader resolved: ${wasmFileset.wasmLoaderPath}`);
+    sendLog("WebAssembly fileset resolved in classic worker.", "success");
     const model = await obtainModelReader();
     send("phase", { phase: "model-init", message: "Loading neural model into worker memory…" });
     const start = performance.now();
     // Inference and model setup are intentionally isolated from the page's UI thread.
     ttsInstance = await TextToSpeech.createFromModelBuffer(wasmFileset, model.reader);
+    sendLog("MediaPipe WASM module factory initialized successfully.", "success");
     if (model.cachePromise) {
       const cached = await model.cachePromise;
       sendLog(cached ? "Model saved in browser Cache Storage." : "Model loaded; persistent cache was unavailable.", cached ? "success" : "info");

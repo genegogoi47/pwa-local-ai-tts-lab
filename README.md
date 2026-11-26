@@ -8,7 +8,7 @@ A mobile-first installable PWA experiment for running Google's MediaPipe Text-to
 2. Uses MediaPipe Tasks Audio JavaScript SDK `1.2.3` and the official Phonon model hosted by the LiteRT Community on Hugging Face.
 3. Stores the model response in a dedicated Cache Storage cache where supported.
 4. Enumerates the actual voices exposed by the loaded model (`listVoices()`).
-5. Runs MediaPipe model initialization and synthesis inside a dedicated Web Worker so model inference does not block the PWA interface.
+5. Runs MediaPipe model initialization and synthesis inside a dedicated classic Web Worker so model inference does not block the PWA interface. A classic worker is intentional: MediaPipe’s Emscripten WASM loader uses `importScripts()` to register its global `ModuleFactory`; a module worker can fail with `ModuleFactory not set`.
 5. Synthesizes a short text sample to 24 kHz mono float32 PCM.
 6. Converts the PCM to a 16-bit WAV file and plays it through a normal HTML `<audio>` element.
 7. Exposes Media Session metadata/actions where supported so lock-screen controls can be tested.
@@ -45,7 +45,7 @@ This is a technical proof of concept, not a book reader. It deliberately limits 
 - Phonon model: `https://huggingface.co/litert-community/phonon-31m-en/resolve/main/phonon_int8.litertlm`
 - Official MediaPipe guide: https://developers.google.com/edge/mediapipe/solutions/audio/text_to_speech
 
-The application downloads the model and WebAssembly runtime from those external hosts. Model inference runs in a dedicated Web Worker, following Google's guidance to move synchronous Web inference off the UI thread. TTS inference is performed locally in the browser; this prototype does not send the entered test text to a cloud TTS endpoint. MediaPipe Tasks may collect usage/performance metrics; see Google's MediaPipe privacy notice.
+The application downloads the model and WebAssembly runtime from those external hosts. Model inference runs in a dedicated classic Web Worker, following Google's guidance to move synchronous Web inference off the UI thread. TTS inference is performed locally in the browser; this prototype does not send the entered test text to a cloud TTS endpoint. MediaPipe Tasks may collect usage/performance metrics; see Google's MediaPipe privacy notice.
 
 ## Model details
 

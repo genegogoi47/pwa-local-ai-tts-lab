@@ -125,7 +125,7 @@ function populateVoices(list) {
 function ensureWorker() {
   if (ttsWorker) return ttsWorker;
   if (!("Worker" in window)) throw new Error("This browser does not support Web Workers.");
-  ttsWorker = new Worker("/tts-worker.js", { type: "module", name: "phonon-tts-worker" });
+  ttsWorker = new Worker("/tts-worker.js", { type: "classic", name: "phonon-tts-worker" }); // Classic worker: MediaPipe WASM loader uses importScripts().
   ttsWorker.addEventListener("message", handleWorkerMessage);
   ttsWorker.addEventListener("error", (event) => {
     const message = event.message || "Unknown Web Worker error.";
@@ -225,7 +225,7 @@ function handleWorkerMessage(event) {
     els.generate.disabled = false;
     els.generationEstimate.textContent = `Ready. Model initialized in ${data.elapsedSeconds ?? "—"}s.`;
     setModelStatus(`Model loaded in worker and ready. Initialization: ${data.elapsedSeconds ?? "—"}s.`, "good");
-    log("Inference engine is running in a dedicated Web Worker; page controls remain responsive.", "success");
+    log("Inference engine is running in a dedicated classic Web Worker; page controls remain responsive.", "success");
     if (navigator.storage?.persist) {
       navigator.storage.persist().then((persisted) => log(persisted ? "Browser granted persistent storage." : "Browser did not grant persistent storage; cached model may still be retained.", persisted ? "success" : "info")).catch(() => {});
     }
@@ -398,4 +398,4 @@ updateDiagnostics();
 if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
   window.addEventListener("load", () => navigator.serviceWorker.register("/sw.js").then(() => log("PWA service worker registered.", "success")).catch((error) => log(`Service worker registration failed: ${error.message}`, "error")));
 }
-log("Prototype ready. Model inference will run in a dedicated Web Worker.");
+log("Prototype ready. Model inference will run in a dedicated classic Web Worker.");
